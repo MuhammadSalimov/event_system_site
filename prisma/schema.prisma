@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String        @unique
+  password    String
+  fullName    String
+  role        Role          @default(user)
+  isActivated Boolean       @default(false)
+  events      Event[]       @relation("UserEvents")
+  Participant Participant[]
+  token       TokenModel[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("user")
+}
+
+enum Format {
+  online
+  offline
+}
+
+model Event {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String // true
+  description  String // true
+  photo        String
+  price        Int? // true
+  format       Format // true
+  location     String? // true
+  organizerId  String        @db.Uuid
+  categoryId   String        @db.Uuid
+  startDate    String // true
+  startTime    String // true
+  maxAttendees Int? // true
+  organizer    User          @relation("UserEvents", fields: [organizerId], references: [id], onDelete: Cascade)
+  participants Participant[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("event")
+}
+
+model Category {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryName String
+  events       Event[]
+
+  @@map("category")
+}
+
+model Participant {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId  String @db.Uuid
+  eventId String @db.Uuid
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("participant")
+}
+
+model TokenModel {
+  id           String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String @db.Uuid
+  refreshToken String
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([id])
+  @@map("tokenModel")
+}
