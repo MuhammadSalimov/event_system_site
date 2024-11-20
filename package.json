@@ -11,7 +11,7 @@
 		"NodeJS",
 		"ExpressJS"
 	],
-	"author": "Samar Badriddinov",
+	"author": "",
 	"license": "ISC",
 	"dependencies": {
 		"@prisma/client": "^5.18.0",
